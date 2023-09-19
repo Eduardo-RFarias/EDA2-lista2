@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define HASHSIZE 7207
-#define PRIME 31
-#define MAX_COLLISIONS 10
+// Load factor of 0.7 (70%)
+// 5000/0.7 ~~ 7143, closest prime number is 7151.
+#define HASHSIZE 7151
+#define MAX_COLLISIONS 15
 #define NULL_VALUE -1
 
 #define HASH(x) (x % HASHSIZE)
-#define HASH2(x) (PRIME + (x % (HASHSIZE - PRIME)))
-#define JUMP(x, y) ((x + y) % HASHSIZE)
+#define JUMP(x) ((x + 1) % HASHSIZE)
 
 typedef struct kv
 {
@@ -28,13 +28,12 @@ void ht_clear(KV *table)
 KV ht_count(KV *table, int key)
 {
     int hash;
-    int offset;
     int collisions;
 
     // Loop until we find a free position or we reach the maximum number of collisions,
-    for (hash = HASH(key), offset = HASH2(key), collisions = 0;
+    for (hash = HASH(key), collisions = 0;
          table[hash].key != NULL_VALUE && collisions < MAX_COLLISIONS;
-         hash = JUMP(hash, offset), collisions++)
+         hash = JUMP(hash), collisions++)
     {
         // If we find the number, we increment its value and return it
         if (table[hash].key == key)
@@ -47,6 +46,7 @@ KV ht_count(KV *table, int key)
     // If we reached the maximum number of collisions, we exit the program with error code 1
     if (collisions == MAX_COLLISIONS)
     {
+        fprintf(stderr, "Maximum number of collisions reached!\n");
         exit(1);
     }
 
